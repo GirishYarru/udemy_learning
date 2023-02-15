@@ -1,0 +1,75 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version("$shadowGradleVersion")
+}
+
+group 'com.girishy'
+version '1.0-SNAPSHOT'
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'com.girishy.ingest.SparkApplication'
+        )
+    }
+}
+
+dependencies {
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+    implementation "org.apache.spark:spark-sql_$sparkSQL"
+    implementation "org.apache.spark:spark-core_$sparkCore"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+shadowJar{
+    zip64 = true
+    destinationDirectory= project.layout.buildDirectory.dir('lib')
+}
+jar.dependsOn(shadowJar)
+tasks.jar {
+    enabled = true
+    destinationDirectory = project.layout.buildDirectory.dir('lib')
+}
+
+task sourceJar(type: Jar){
+    archiveClassifier.set("sources")
+    from sourceSets.main.allJava
+    destinationDirectory = project.layout.buildDirectory.dir('lib')
+    fileMode 755
+}
+
+task javadocJar(type: Jar){
+    archiveClassifier.set("javadoc")
+    dependsOn("javadoc")
+    from tasks.javadoc.destinationDir
+    destinationDirectory = project.layout.buildDirectory.dir('lib')
+    fileMode 755
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs= ["src/main/java"]
+        }
+        resources {
+            srcDirs= ["src/main/resources"]
+        }
+    }
+}
+
+//task copyConfigs(type:Copy){
+//    from("$projectDir/src/main/resources/")
+//    into("$projectDir/src/main/resources/")
+//    fileMode 755
+//}
